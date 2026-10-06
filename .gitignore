@@ -1,0 +1,4 @@
+.DS_Store
+# Raw renders and window captures; regenerate with the steps in README.md.
+tools/fixtures/*.png
+tools/shots/

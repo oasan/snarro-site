@@ -1,0 +1,734 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Snarro</title>
+<meta name="description" content="Snarro — скриншоты с пометками для macOS. Выделили область, нарисовали стрелку, нажали ⌘C — картинка уже в буфере обмена.">
+<link rel="icon" type="image/png" href="assets/favicon-64.png">
+<style>
+/* Layout: Apple-style product page. Centered 980px text column, wide 1200px stages,
+   one sticky scroll scene (the five steps), a dark keyboard band. Ink red = Snarro's default annotation color. */
+:root {
+  --bg: #ffffff;
+  --bg-alt: #f5f5f7;
+  --card: #ffffff;
+  --fg: #1d1d1f;
+  --muted: #6e6e73;
+  --line: #d2d2d7;
+  --ink: #ff3b30;
+  --cta-bg: #1d1d1f;
+  --cta-fg: #ffffff;
+  --link: #0066cc;
+  --nav-bg: rgba(255, 255, 255, 0.72);
+  --key-top: #ffffff;
+  --key-bottom: #f0f0f2;
+  --key-edge: #c7c7cc;
+  --key-fg: #1d1d1f;
+  --wall-0: #f3eee8;
+  --wall-1: #ffd3bd;
+  --wall-2: #c6dbff;
+  --wall-3: #e4d6ff;
+  --chat-bg: #ffffff;
+  --chat-alt: #f2f2f7;
+  --chat-out: #0a7cff;
+  --dim: rgba(0, 0, 0, 0.42);
+  --shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.35);
+
+  /* The keyboard band is dark in both themes, on purpose. */
+  --band-bg: #000000;
+  --band-fg: #f5f5f7;
+  --band-muted: #a1a1a6;
+  --band-key-top: #3a3a3c;
+  --band-key-bottom: #2c2c2e;
+  --band-key-edge: #48484a;
+
+  --show-light: block;
+  --show-dark: none;
+
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --text: 17px;
+  --lead: clamp(19px, 2.2vw, 24px);
+  --h3: clamp(21px, 2.4vw, 24px);
+  --h2: clamp(36px, 6vw, 64px);
+  --h1: clamp(48px, 8.4vw, 96px);
+  --col: 980px;
+  --wide: 1200px;
+  --gutter: max(16px, env(safe-area-inset-left, 0px));
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #000000; --bg-alt: #0f0f10; --card: #1c1c1e; --fg: #f5f5f7; --muted: #a1a1a6; --line: #38383a;
+    --ink: #ff453a; --cta-bg: #f5f5f7; --cta-fg: #000000; --link: #2997ff; --nav-bg: rgba(22, 22, 23, 0.72);
+    --key-top: #3a3a3c; --key-bottom: #2c2c2e; --key-edge: #48484a; --key-fg: #f5f5f7;
+    --wall-0: #15141a; --wall-1: #5a2a1f; --wall-2: #1d3768; --wall-3: #3d2a66;
+    --chat-bg: #1c1c1e; --chat-alt: #2c2c2e; --chat-out: #0a84ff; --dim: rgba(0, 0, 0, 0.55);
+    --shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.9);
+    --show-light: none; --show-dark: block;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #000000; --bg-alt: #0f0f10; --card: #1c1c1e; --fg: #f5f5f7; --muted: #a1a1a6; --line: #38383a;
+  --ink: #ff453a; --cta-bg: #f5f5f7; --cta-fg: #000000; --link: #2997ff; --nav-bg: rgba(22, 22, 23, 0.72);
+  --key-top: #3a3a3c; --key-bottom: #2c2c2e; --key-edge: #48484a; --key-fg: #f5f5f7;
+  --wall-0: #15141a; --wall-1: #5a2a1f; --wall-2: #1d3768; --wall-3: #3d2a66;
+  --chat-bg: #1c1c1e; --chat-alt: #2c2c2e; --chat-out: #0a84ff; --dim: rgba(0, 0, 0, 0.55);
+  --shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.9);
+  --show-light: none; --show-dark: block;
+  color-scheme: dark;
+}
+
+@property --p {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 400 var(--text)/1.47 var(--font);
+  letter-spacing: -0.022em;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+img { max-width: 100%; height: auto; display: block; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+:focus-visible { outline: 3px solid var(--link); outline-offset: 3px; border-radius: 6px; }
+h1, h2, h3 { margin: 0; text-wrap: balance; font-weight: 600; }
+p { margin: 0; }
+.t-light { display: var(--show-light); }
+.t-dark { display: var(--show-dark); }
+
+.col { max-width: var(--col); margin-inline: auto; padding-inline: var(--gutter); }
+.wide { max-width: var(--wide); margin-inline: auto; padding-inline: var(--gutter); }
+.eyebrow { font-size: clamp(17px, 1.8vw, 21px); font-weight: 600; color: var(--ink); letter-spacing: -0.01em; }
+.sec-head { display: grid; gap: 14px; text-align: center; justify-items: center; }
+.sec-head h2 { font-size: var(--h2); line-height: 1.06; letter-spacing: -0.03em; }
+.sec-head .lead { max-width: 40ch; }
+.lead { font-size: var(--lead); line-height: 1.38; color: var(--muted); letter-spacing: -0.015em; }
+.lead b { color: var(--fg); font-weight: 600; }
+
+/* Keycaps */
+.kbd {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 2.1em; height: 2.1em; padding: 0 0.55em;
+  border-radius: 0.42em;
+  background: linear-gradient(var(--key-top), var(--key-bottom));
+  box-shadow: inset 0 0 0 1px var(--key-edge), 0 0.12em 0 var(--key-edge), 0 0.3em 0.6em -0.2em rgba(0, 0, 0, 0.25);
+  color: var(--key-fg);
+  font-weight: 600; font-size: 0.82em; letter-spacing: 0.02em; line-height: 1;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.kbds { display: inline-flex; gap: 0.3em; }
+
+/* Nav */
+.nav {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50;
+  background: var(--nav-bg);
+  -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+}
+.nav .wide { display: flex; align-items: center; gap: 28px; height: 52px; }
+.brand { display: flex; align-items: center; gap: 9px; color: var(--fg); font-weight: 600; font-size: 19px; letter-spacing: -0.02em; }
+.brand:hover { text-decoration: none; }
+.brand img { width: 26px; height: 26px; }
+.nav-links { display: flex; gap: 26px; margin-left: auto; font-size: 13px; letter-spacing: -0.01em; }
+.nav-links a { color: var(--fg); opacity: 0.8; }
+.nav-links a:hover { opacity: 1; text-decoration: none; }
+.pill {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border-radius: 999px; background: var(--cta-bg); color: var(--cta-fg);
+  font-weight: 500; letter-spacing: -0.01em; white-space: nowrap;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.pill:hover { text-decoration: none; opacity: 0.88; }
+.pill:active { transform: scale(0.97); }
+.pill.small { font-size: 13px; padding: 5px 13px; }
+.pill.big { font-size: 17px; padding: 13px 26px; }
+.pill svg { width: 1.05em; height: 1.05em; fill: currentColor; }
+@media (max-width: 760px) { .nav-links { display: none; } .nav .pill { margin-left: auto; } }
+
+/* Hero */
+.hero { padding-block: clamp(40px, 6vw, 72px) 0; text-align: center; overflow: hidden; }
+.hero .col { max-width: 1120px; display: grid; justify-items: center; gap: 16px; }
+.hero-icon { width: clamp(80px, 9vw, 108px); height: auto; animation: rise 0.9s cubic-bezier(.2, .8, .2, 1) both; }
+.hero h1 {
+  font-size: var(--h1); line-height: 1.02; letter-spacing: -0.045em; font-weight: 700;
+  animation: rise 0.9s 0.08s cubic-bezier(.2, .8, .2, 1) both;
+}
+.hero h1 .k { color: var(--ink); }
+.hero .lead { max-width: 40ch; animation: rise 0.9s 0.16s cubic-bezier(.2, .8, .2, 1) both; }
+.cta-row { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 14px 28px; margin-top: 10px; animation: rise 0.9s 0.24s cubic-bezier(.2, .8, .2, 1) both; }
+.text-link { font-size: 19px; }
+.req { font-size: 14px; color: var(--muted); animation: rise 0.9s 0.3s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+
+.hero-stage {
+  position: relative; margin-top: clamp(32px, 4.5vw, 56px);
+  border-radius: clamp(18px, 3vw, 36px);
+  padding: clamp(18px, 5vw, 64px) clamp(10px, 4vw, 56px) clamp(6px, 2vw, 24px);
+  background:
+    radial-gradient(60% 70% at 18% 20%, var(--wall-1), transparent 70%),
+    radial-gradient(55% 65% at 85% 25%, var(--wall-2), transparent 70%),
+    radial-gradient(70% 70% at 55% 100%, var(--wall-3), transparent 70%),
+    var(--wall-0);
+  transform: scale(var(--s, 0.94));
+  transform-origin: 50% 0;
+  will-change: transform;
+}
+.shot-pair { position: relative; }
+.shot-pair img { width: 100%; height: auto; }
+.shot-pair .ink { position: absolute; inset: 0; }
+
+/* The arrow and its caption "draw" themselves: the annotated shot is revealed along the arrow,
+   from the caption at its tail to the head. Only those pixels differ from the empty shot below. */
+.ink {
+  -webkit-mask-image: linear-gradient(45deg, #000 calc(var(--p) - 4%), transparent var(--p));
+  mask-image: linear-gradient(45deg, #000 calc(var(--p) - 4%), transparent var(--p));
+}
+.hero .ink { animation: draw 1.6s 1s cubic-bezier(.55, .1, .35, 1) both; }
+@keyframes draw { from { --p: 22%; } to { --p: 70%; } }
+
+/* Sections */
+section { scroll-margin-top: 60px; }
+.band { padding-block: clamp(80px, 12vw, 150px); }
+.band.alt { background: var(--bg-alt); }
+
+/* Story: five steps, one sticky stage */
+.story-grid {
+  display: grid; grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.7fr); gap: clamp(24px, 5vw, 64px);
+  margin-top: clamp(48px, 7vw, 88px); align-items: start;
+}
+.steps { list-style: none; margin: 0; padding: 0; display: grid; }
+.step {
+  min-height: 72vh; display: grid; align-content: center; gap: 12px;
+  opacity: 0.32; transition: opacity 0.5s ease;
+}
+.step:first-child { min-height: 60vh; align-content: start; padding-top: 18vh; }
+.step:last-child { min-height: 80vh; }
+.step.on { opacity: 1; }
+.step .kbds { font-size: 22px; }
+.step h3 { font-size: var(--h3); line-height: 1.2; letter-spacing: -0.02em; }
+.step p { color: var(--muted); max-width: 38ch; }
+.step .num { font-size: 14px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+/* Keeps the 16:10 stage centered in the space under the nav. */
+.stage-wrap { position: sticky; top: max(72px, calc(26px + 50vh - min(100vw, 1200px) * 0.2)); }
+
+.stage {
+  container-type: inline-size;
+  position: relative; aspect-ratio: 16 / 10; width: 100%;
+  border-radius: clamp(14px, 2vw, 24px); overflow: hidden;
+  background:
+    radial-gradient(60% 70% at 15% 15%, var(--wall-1), transparent 70%),
+    radial-gradient(55% 65% at 90% 20%, var(--wall-2), transparent 70%),
+    radial-gradient(70% 70% at 50% 105%, var(--wall-3), transparent 70%),
+    var(--wall-0);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--line) 50%, transparent);
+  letter-spacing: -0.01em;
+}
+/* cqw on .stage itself would follow the viewport, so the children set the size. */
+.stage > * { font-size: 1.3cqw; position: absolute; transition: opacity 0.6s ease, transform 0.8s cubic-bezier(.2, .8, .2, 1); }
+
+/* Browser with the page being captured */
+.browser {
+  left: 11cqw; top: 7.15cqw; width: 78cqw;
+  border-radius: 1.1cqw; overflow: hidden; background: #fff;
+  box-shadow: 0 2cqw 5cqw -2cqw rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.browser-bar { height: 3.2cqw; display: flex; align-items: center; gap: 0.7cqw; padding-inline: 1.4cqw; background: #f1f1f3; border-bottom: 1px solid #e2e2e6; }
+.browser-bar i { width: 0.95cqw; height: 0.95cqw; border-radius: 50%; background: #d4d4d8; }
+.browser-bar i:nth-child(1) { background: #ff5f57; } .browser-bar i:nth-child(2) { background: #febc2e; } .browser-bar i:nth-child(3) { background: #28c840; }
+.browser-bar span { margin-inline: auto; padding: 0.3cqw 4cqw; border-radius: 0.6cqw; background: #e4e4e8; color: #6e6e73; font-size: 1.15cqw; }
+.browser img { width: 100%; }
+
+/* Selection: a hole in the dimmed screen */
+.sel {
+  left: 11cqw; top: 10.35cqw; width: 0; height: 0;
+  box-shadow: 0 0 0 200cqw var(--dim);
+  outline: 1px solid rgba(255, 255, 255, 0.9);
+  transition: width 1.1s cubic-bezier(.45, 0, .2, 1), height 1.1s cubic-bezier(.45, 0, .2, 1), opacity 0.5s ease;
+}
+.sel .size {
+  position: absolute; right: 0; bottom: -3.2cqw; padding: 0.35cqw 0.8cqw; border-radius: 0.6cqw;
+  background: rgba(30, 30, 32, 0.88); color: #fff; font-weight: 600; font-variant-numeric: tabular-nums;
+  font-size: 1.25cqw; white-space: nowrap; opacity: 0; transition: opacity 0.3s ease 0.9s;
+}
+.cursor {
+  left: 11cqw; top: 10.35cqw; width: 3cqw; height: 3cqw; margin: -1.5cqw 0 0 -1.5cqw;
+  transition: left 1.1s cubic-bezier(.45, 0, .2, 1), top 1.1s cubic-bezier(.45, 0, .2, 1), opacity 0.4s ease;
+}
+.cursor svg { width: 100%; height: 100%; }
+
+.editor { left: 8cqw; top: 3.2cqw; width: 84cqw; opacity: 0; transform: scale(0.94) translateY(2cqw); }
+.editor .ink { --p: 22%; transition: --p 1.5s cubic-bezier(.55, .1, .35, 1) 0.7s; }
+
+.chat {
+  left: 19cqw; top: 4cqw; width: 62cqw; height: 54cqw;
+  border-radius: 1.6cqw; overflow: hidden; background: var(--chat-bg); color: var(--fg);
+  box-shadow: 0 2.5cqw 6cqw -2cqw rgba(0, 0, 0, 0.45), 0 0 0 1px color-mix(in srgb, var(--line) 70%, transparent);
+  display: flex; flex-direction: column;
+  opacity: 0; transform: translateY(5cqw);
+}
+.chat-head { display: flex; align-items: center; gap: 1cqw; padding: 1.2cqw 1.6cqw; border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent); }
+.chat-head .av { width: 3.2cqw; height: 3.2cqw; border-radius: 50%; background: linear-gradient(140deg, #34c759, #0a8f5a); }
+.chat-head b { font-weight: 600; display: block; }
+.chat-head small { color: var(--muted); font-size: 0.85em; }
+.chat-body { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 0.9cqw; padding: 1.6cqw; }
+.msg { max-width: 70%; padding: 0.8cqw 1.2cqw; border-radius: 1.4cqw; background: var(--chat-alt); line-height: 1.3; }
+.msg.out { align-self: flex-end; background: var(--chat-out); color: #fff; }
+.msg.pic {
+  align-self: flex-end; padding: 0.4cqw; width: 66%; max-width: none;
+  opacity: 0; transform: translateY(2cqw) scale(0.96); transform-origin: 100% 100%;
+  transition: opacity 0.5s ease 0.9s, transform 0.6s cubic-bezier(.2, .8, .2, 1) 0.9s;
+}
+.msg.pic img { border-radius: 1.1cqw; width: 100%; }
+.msg.late { opacity: 0; transition: opacity 0.5s ease 1.6s; }
+
+.stage > .keyhint { left: 50%; bottom: 3.5cqw; transform: translateX(-50%) translateY(1cqw); opacity: 0; font-size: 2.6cqw; }
+.keyhint .kbd { min-width: 2.2em; }
+
+/* Stage states */
+.stage[data-step="1"] .sel { width: 0; height: 0; }
+.stage[data-step="1"] .k1, .stage[data-step="2"] .k1 { opacity: 1; transform: translateX(-50%); }
+.stage[data-step="2"] .sel { width: 78cqw; height: 45cqw; }
+.stage[data-step="2"] .sel .size { opacity: 1; }
+.stage[data-step="2"] .cursor { left: 89cqw; top: 55.35cqw; }
+.stage[data-step="2"] .k1 { opacity: 0; }
+.stage:is([data-step="3"], [data-step="4"], [data-step="5"]) .sel { width: 78cqw; height: 45cqw; opacity: 0; }
+.stage:is([data-step="3"], [data-step="4"], [data-step="5"]) .cursor { opacity: 0; left: 89cqw; top: 55.35cqw; }
+.stage[data-step="3"] .editor { opacity: 1; transform: none; }
+.stage:is([data-step="3"], [data-step="4"], [data-step="5"]) .editor .ink { --p: 70%; }
+.stage[data-step="4"] .editor { opacity: 0; transform: scale(0.82) translateY(-3cqw); transition-delay: 0.35s; }
+.stage[data-step="4"] .k4 { opacity: 1; transform: translateX(-50%); }
+.stage[data-step="4"] .k4 .kbd, .stage[data-step="5"] .k5 .kbd { animation: press 0.5s 0.15s ease both; }
+.stage[data-step="5"] .chat { opacity: 1; transform: none; }
+.stage[data-step="5"] .msg.pic { opacity: 1; transform: none; }
+.stage[data-step="5"] .msg.late { opacity: 1; }
+.stage[data-step="5"] .k5 { opacity: 1; transform: translateX(-50%); }
+.stage[data-step="5"] .browser { opacity: 0.6; }
+@keyframes press {
+  0%, 100% { transform: none; }
+  45% { transform: translateY(0.12em); box-shadow: inset 0 0 0 1px var(--key-edge), 0 0 0 var(--key-edge); }
+}
+
+@media (max-width: 860px) {
+  .story-grid { grid-template-columns: minmax(0, 1fr); }
+  .stage-wrap { order: -1; top: calc(52px + 12px); z-index: 2; padding-bottom: 12px; background: var(--bg); }
+  .step, .step:first-child, .step:last-child { min-height: 58vh; padding-top: 0; align-content: center; }
+}
+
+/* Tools */
+.bento { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 20px; margin-top: clamp(48px, 7vw, 80px); }
+.card {
+  grid-column: span 2; background: var(--card); border-radius: 28px; padding: 32px;
+  display: grid; align-content: start; gap: 10px; overflow: hidden; min-width: 0;
+}
+.card h3 { font-size: var(--h3); letter-spacing: -0.02em; line-height: 1.2; }
+.card p { color: var(--muted); }
+.card .tag { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--muted); }
+.card.span3 { grid-column: span 3; }
+.card.span6 { grid-column: span 6; }
+.card.feature { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.6fr); align-items: center; gap: 24px 40px; padding: 40px 0 0 40px; }
+.card.feature .copy { display: grid; gap: 12px; padding-bottom: 40px; }
+.card.feature img { align-self: end; margin-bottom: -6%; }
+.modes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.modes span { font-size: 14px; padding: 5px 12px; border-radius: 999px; background: var(--bg-alt); color: var(--fg); }
+.card .vis { margin-top: 14px; }
+.card .crop { margin: 14px -32px -32px; }
+.swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+.swatches i { width: 26px; height: 26px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12); }
+.widths { display: flex; align-items: center; gap: 18px; margin-top: 16px; }
+.widths span { flex: 1; border-radius: 99px; background: var(--fg); }
+.sizes { display: flex; align-items: baseline; gap: 16px; margin-top: 16px; font-weight: 600; color: var(--ink); }
+.arrow-demo { width: 100%; height: auto; }
+.arrow-demo text { font: 600 22px var(--font); fill: var(--ink); letter-spacing: -0.01em; }
+@media (max-width: 860px) {
+  .card, .card.span3 { grid-column: span 6; }
+  .card.feature { grid-template-columns: minmax(0, 1fr); padding: 32px 0 0 32px; }
+  .card.feature .copy { padding: 0 32px 0 0; }
+}
+
+/* Keyboard band */
+.keys-band { background: var(--band-bg); color: var(--band-fg); }
+.keys-band .lead { color: var(--band-muted); }
+.keys-band .kbd {
+  --key-top: var(--band-key-top); --key-bottom: var(--band-key-bottom); --key-edge: var(--band-key-edge); --key-fg: var(--band-fg);
+}
+.keys-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: clamp(32px, 6vw, 72px); align-items: center; margin-top: clamp(48px, 7vw, 80px); }
+.keymap { display: grid; gap: 4px; }
+.keymap h3 { font-size: 13px; font-weight: 600; color: var(--band-muted); letter-spacing: 0.04em; text-transform: uppercase; margin: 18px 0 6px; }
+.keymap h3:first-child { margin-top: 0; }
+.keyrow { display: flex; align-items: center; gap: 14px; padding: 7px 0; font-size: 17px; }
+.keyrow .kbds { min-width: 92px; font-size: 19px; }
+@media (max-width: 860px) { .keys-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* Native look: light and dark windows side by side */
+.duo { position: relative; display: grid; margin-top: clamp(48px, 7vw, 80px); }
+.duo img { grid-area: 1 / 1; width: 72%; }
+.duo .back { justify-self: start; }
+.duo .front { justify-self: end; margin-top: 18%; }
+
+/* Details */
+.facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 44px 40px; margin-top: clamp(48px, 7vw, 80px); }
+.fact { display: grid; gap: 8px; align-content: start; }
+.fact svg { width: 34px; height: 34px; stroke: var(--ink); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; margin-bottom: 6px; }
+.fact h3 { font-size: 19px; letter-spacing: -0.015em; }
+.fact p { color: var(--muted); }
+@media (max-width: 860px) { .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .facts { grid-template-columns: minmax(0, 1fr); } }
+
+/* Download */
+.download { text-align: center; }
+.download .col { display: grid; justify-items: center; gap: 18px; }
+.download img { width: clamp(120px, 16vw, 168px); height: auto; }
+.download h2 { font-size: var(--h2); letter-spacing: -0.03em; line-height: 1.06; }
+
+footer { border-top: 1px solid var(--line); padding-block: 24px 40px; font-size: 12px; color: var(--muted); }
+footer .wide { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; }
+
+/* Scroll reveal (only for content below the first screen) */
+.pre { opacity: 0; transform: translateY(32px); }
+.reveal { transition: opacity 0.9s ease, transform 0.9s cubic-bezier(.2, .8, .2, 1); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-delay: 0s !important; transition-duration: 0.01ms !important; transition-delay: 0s !important; }
+  .hero-stage { transform: none; }
+  .pre { opacity: 1; transform: none; }
+}
+</style>
+</head>
+<body>
+
+<nav class="nav" aria-label="Главное меню">
+  <div class="wide">
+    <a class="brand" href="#top"><img src="assets/favicon-64.png" alt="" width="26" height="26">Snarro</a>
+    <div class="nav-links">
+      <a href="#how">Как это работает</a>
+      <a href="#tools">Инструменты</a>
+      <a href="#keys">Клавиши</a>
+      <a href="#details">Подробности</a>
+    </div>
+    <a class="pill small" href="#download">Скачать</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="col">
+    <img class="hero-icon" src="assets/icon-512.png" alt="Значок Snarro" width="128" height="128">
+    <h1>Снимок. Стрелка. <span class="k">⌘C.</span></h1>
+    <p class="lead">Скриншот с пометками за пару секунд. Выделите область, нарисуйте стрелку, нажмите ⌘C, и картинка уже в&nbsp;буфере обмена.</p>
+    <div class="cta-row">
+      <a class="pill big" href="#download"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v9.6l3.3-3.3a1 1 0 1 1 1.4 1.4l-5 5a1 1 0 0 1-1.4 0l-5-5a1 1 0 1 1 1.4-1.4l3.3 3.3V4a1 1 0 0 1 1-1zM5 19h14a1 1 0 1 1 0 2H5a1 1 0 1 1 0-2z"/></svg>Скачать для macOS</a>
+      <a class="text-link" href="#how">Как это работает ›</a>
+    </div>
+    <p class="req">macOS 14 Sonoma и новее</p>
+  </div>
+  <div class="wide">
+    <div class="hero-stage" id="heroStage">
+      <div class="shot-pair t-light">
+        <img src="assets/editor-empty-light.webp" alt="Редактор Snarro: скриншот таблицы заказов, красная стрелка с подписью «здесь неверный статус» указывает на статус заказа" width="1917" height="1280">
+        <img class="ink" src="assets/editor-arrow-light.webp" alt="" width="1917" height="1280">
+      </div>
+      <div class="shot-pair t-dark">
+        <img src="assets/editor-empty-dark.webp" alt="Редактор Snarro в тёмной теме: стрелка с подписью «здесь неверный статус»" width="1919" height="1281">
+        <img class="ink" src="assets/editor-arrow-dark.webp" alt="" width="1919" height="1281">
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="band" id="how">
+  <div class="wide">
+    <div class="sec-head" data-reveal>
+      <p class="eyebrow">Как это работает</p>
+      <h2>Пять шагов.<br>Ни одного лишнего окна.</h2>
+    </div>
+
+    <div class="story-grid">
+      <ol class="steps">
+        <li class="step on" data-step="1">
+          <span class="num">1 из 5</span>
+          <span class="kbds"><span class="kbd">⌃</span><span class="kbd">⇧</span><span class="kbd">⌘</span><span class="kbd">S</span></span>
+          <h3>Нажмите сочетание клавиш</h3>
+          <p>Из любого приложения. Экран замирает, курсор становится перекрестием, а меню и всплывающие подсказки остаются на месте. Сочетание можно поменять в настройках.</p>
+        </li>
+        <li class="step" data-step="2">
+          <span class="num">2 из 5</span>
+          <h3>Выделите область</h3>
+          <p>У рамки виден размер в точках. Рамка выравнивается по точкам экрана, и снимок совпадает с ней до пикселя.</p>
+        </li>
+        <li class="step" data-step="3">
+          <span class="num">3 из 5</span>
+          <h3>Нарисуйте стрелку и подпишите</h3>
+          <p>Редактор открывается с последним инструментом, так что можно сразу рисовать. После стрелки просто печатайте: подпись встанет у её хвоста и будет двигаться вместе с ней.</p>
+        </li>
+        <li class="step" data-step="4">
+          <span class="num">4 из 5</span>
+          <span class="kbds"><span class="kbd">⌘</span><span class="kbd">C</span></span>
+          <h3>Скопируйте</h3>
+          <p>Картинка с пометками уходит в буфер обмена в PNG, редактор закрывается. Если нужен ещё и файл, включите сохранение при ⌘C.</p>
+        </li>
+        <li class="step" data-step="5">
+          <span class="num">5 из 5</span>
+          <span class="kbds"><span class="kbd">⌘</span><span class="kbd">V</span></span>
+          <h3>Вставьте куда угодно</h3>
+          <p>В Telegram, Slack, Notion, письмо или задачу в трекере. От мысли до отправленной картинки проходит несколько секунд.</p>
+        </li>
+      </ol>
+
+      <div class="stage-wrap">
+        <div class="stage" id="stage" data-step="1" role="img" aria-label="Анимация: выделение области, стрелка в редакторе Snarro, копирование и вставка в чат">
+          <div class="browser">
+            <div class="browser-bar"><i></i><i></i><i></i><span>parceldesk.app/orders</span></div>
+            <img src="assets/orders.webp" alt="" width="2080" height="1200">
+          </div>
+          <div class="sel"><span class="size">1040 × 600</span></div>
+          <div class="cursor" aria-hidden="true">
+            <svg viewBox="0 0 30 30"><path d="M15 2v26M2 15h26" stroke="#fff" stroke-width="4" stroke-linecap="round"/><path d="M15 3v24M3 15h24" stroke="#1d1d1f" stroke-width="1.6"/></svg>
+          </div>
+          <div class="editor">
+            <div class="shot-pair t-light">
+              <img src="assets/editor-empty-light.webp" alt="" width="1917" height="1280" loading="lazy">
+              <img class="ink" src="assets/editor-arrow-light.webp" alt="" width="1917" height="1280" loading="lazy">
+            </div>
+            <div class="shot-pair t-dark">
+              <img src="assets/editor-empty-dark.webp" alt="" width="1919" height="1281" loading="lazy">
+              <img class="ink" src="assets/editor-arrow-dark.webp" alt="" width="1919" height="1281" loading="lazy">
+            </div>
+          </div>
+          <div class="chat">
+            <div class="chat-head"><span class="av"></span><div><b>Склад и доставка</b><small>4 участника</small></div></div>
+            <div class="chat-body">
+              <div class="msg">Кто смотрел вчерашние заказы?</div>
+              <div class="msg out">Смотрите, у #10480 статус не тот</div>
+              <div class="msg pic"><img src="assets/final-image.webp" alt="" width="1775" height="1024" loading="lazy"></div>
+              <div class="msg late">Ой, сейчас поправлю 🙏</div>
+            </div>
+          </div>
+          <div class="keyhint k1"><span class="kbds"><span class="kbd">⌃</span><span class="kbd">⇧</span><span class="kbd">⌘</span><span class="kbd">S</span></span></div>
+          <div class="keyhint k4"><span class="kbds"><span class="kbd">⌘</span><span class="kbd">C</span></span></div>
+          <div class="keyhint k5"><span class="kbds"><span class="kbd">⌘</span><span class="kbd">V</span></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band alt" id="tools">
+  <div class="wide">
+    <div class="sec-head" data-reveal>
+      <p class="eyebrow">Инструменты</p>
+      <h2>Всё, чтобы показать.<br>Ничего лишнего.</h2>
+      <p class="lead">Пять инструментов прямо в заголовке окна. У каждого своя клавиша: от <b>⌘1</b> до <b>⌘5</b>.</p>
+    </div>
+
+    <div class="bento">
+      <article class="card span6 feature" data-reveal>
+        <div class="copy">
+          <span class="tag"><span class="kbd">⌘5</span> Скрытие</span>
+          <h3>Спрячьте личное перед отправкой</h3>
+          <p>Почту, телефон и номер карты можно размыть, пикселизировать или закрасить. Скрытие ложится под стрелки и текст, поэтому пометки поверх него остаются видны.</p>
+          <div class="modes"><span>Размытие</span><span>Пикселизация</span><span>Замазка</span></div>
+        </div>
+        <img class="t-light" src="assets/editor-redact-light.webp" alt="Редактор Snarro: почта размыта, телефон пикселизирован, номер карты закрашен, кнопка обведена красной рамкой" width="1513" height="1123" loading="lazy">
+        <img class="t-dark" src="assets/editor-redact-dark.webp" alt="То же в тёмной теме" width="1515" height="1125" loading="lazy">
+      </article>
+
+      <article class="card span3" data-reveal>
+        <span class="tag"><span class="kbd">⌘2</span> Стрелка</span>
+        <h3>Стрелка с подписью</h3>
+        <p>Нарисовали стрелку и сразу печатаете. Подпись стоит у хвоста и переезжает вместе со стрелкой.</p>
+        <svg class="arrow-demo vis" viewBox="0 0 460 170" role="img" aria-label="Красная стрелка с подписью «вот эта кнопка»">
+          <text x="18" y="150">вот эта кнопка</text>
+          <path d="M196 138 L386 45" stroke="var(--ink)" stroke-width="6" stroke-linecap="round"/>
+          <path d="M408 34 L390 57 L379 34 Z" fill="var(--ink)" stroke="var(--ink)" stroke-width="4" stroke-linejoin="round"/>
+        </svg>
+      </article>
+
+      <article class="card span3" data-reveal>
+        <span class="tag"><span class="kbd">⌘4</span> Прямоугольник <span class="kbd">⌘3</span> Текст</span>
+        <h3>Рамка и текст</h3>
+        <p>Обведите нужное и добавьте пояснение где угодно. Под текст можно подложить белую или чёрную плашку для пёстрого фона.</p>
+        <div class="crop">
+          <img class="t-light" src="assets/editor-mix-light.webp" alt="Редактор Snarro: статус обведён красной рамкой, внизу подпись «Проверить статус #10480»" width="1917" height="1280" loading="lazy">
+          <img class="t-dark" src="assets/editor-mix-dark.webp" alt="То же в тёмной теме" width="1919" height="1281" loading="lazy">
+        </div>
+      </article>
+
+      <article class="card" data-reveal>
+        <h3>Цвет</h3>
+        <p>Восемь готовых цветов и системная палитра для любого другого.</p>
+        <div class="swatches vis" aria-label="Цвета: красный, оранжевый, жёлтый, зелёный, синий, фиолетовый, чёрный, белый">
+          <i style="background:#ff3b30"></i><i style="background:#ff9500"></i><i style="background:#ffcc00"></i><i style="background:#34c759"></i><i style="background:#007aff"></i><i style="background:#af52de"></i><i style="background:#000000"></i><i style="background:#ffffff"></i>
+        </div>
+      </article>
+
+      <article class="card" data-reveal>
+        <h3>Толщина и размер</h3>
+        <p>Линия от 1 до 30, текст от 8 до 96. Выбор запоминается до следующего снимка.</p>
+        <div class="widths" aria-hidden="true"><span style="height:2px"></span><span style="height:3px"></span><span style="height:5px"></span><span style="height:8px"></span></div>
+        <div class="sizes" aria-hidden="true"><span style="font-size:13px">Аа</span><span style="font-size:16px">Аа</span><span style="font-size:20px">Аа</span><span style="font-size:28px">Аа</span></div>
+      </article>
+
+      <article class="card" data-reveal>
+        <span class="tag"><span class="kbd">⌘1</span> Выбор</span>
+        <h3>Правка без спешки</h3>
+        <p>Любую пометку можно сдвинуть, поменять ей цвет или удалить клавишей ⌫. Отмена — ⌘Z, повтор — ⇧⌘Z.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="band keys-band" id="keys">
+  <div class="wide">
+    <div class="sec-head" data-reveal>
+      <p class="eyebrow">Клавиатура</p>
+      <h2>Руки остаются<br>на клавиатуре.</h2>
+      <p class="lead">У каждого действия есть сочетание клавиш, и любое из них можно переназначить.</p>
+    </div>
+    <div class="keys-grid">
+      <div class="keymap" data-reveal>
+        <h3>Инструменты</h3>
+        <div class="keyrow"><span class="kbds"><span class="kbd">⌘</span><span class="kbd">1</span></span>Выбор</div>
+        <div class="keyrow"><span class="kbds"><span class="kbd">⌘</span><span class="kbd">2</span></span>Стрелка</div>
+        <div class="keyrow"><span class="kbds"><span class="kbd">⌘</span><span class="kbd">3</span></span>Текст</div>
+        <div class="keyrow"><span class="kbds"><span class="kbd">⌘</span><span class="kbd">4</span></span>Прямоугольник</div>
+        <div class="keyrow"><span class="kbds"><span class="kbd">⌘</span><span class="kbd">5</span></span>Скрытие</div>
+        <h3>Завершение</h3>
+        <div class="keyrow"><span class="kbds"><span class="kbd">⌘</span><span class="kbd">C</span></span>Скопировать и закрыть</div>
+        <div class="keyrow"><span class="kbds"><span class="kbd">⌘</span><span class="kbd">S</span></span>Сохранить и закрыть</div>
+        <div class="keyrow"><span class="kbds"><span class="kbd">esc</span></span>Закрыть без сохранения</div>
+      </div>
+      <img src="assets/settings-shortcuts-dark.webp" alt="Окно настроек Snarro, вкладка «Клавиши»: сочетания для инструментов, правки, завершения и ввода текста" width="1552" height="1140" loading="lazy" data-reveal>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="native">
+  <div class="wide">
+    <div class="sec-head" data-reveal>
+      <p class="eyebrow">Сделано для Mac</p>
+      <h2>Выглядит как macOS,<br>потому что это macOS.</h2>
+      <p class="lead">Системные цвета, светлая и тёмная тема, инструменты в заголовке окна. Snarro написан на Swift, без Electron и лишних зависимостей.</p>
+    </div>
+    <div class="duo" data-reveal>
+      <img class="back" src="assets/editor-mix-light.webp" alt="Редактор Snarro в светлой теме" width="1917" height="1280" loading="lazy">
+      <img class="front" src="assets/editor-redact-dark.webp" alt="Редактор Snarro в тёмной теме" width="1515" height="1125" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<section class="band alt" id="details">
+  <div class="wide">
+    <div class="sec-head" data-reveal>
+      <p class="eyebrow">Подробности</p>
+      <h2>Мелочи, которые<br>экономят секунды.</h2>
+    </div>
+    <div class="facts">
+      <div class="fact" data-reveal>
+        <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 16a10 10 0 1 0 3-7.1"/><path d="M6 5v5h5"/><path d="M16 10v6l4 3"/></svg>
+        <h3>Помнит ваш выбор</h3>
+        <p>Инструмент, цвет, толщина линии и размер текста остаются такими, как в прошлый раз.</p>
+      </div>
+      <div class="fact" data-reveal>
+        <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3v6M16 23v6M3 16h6M23 16h6"/><path d="M8 8l3 3M21 21l3 3M24 8l-3 3M11 21l-3 3"/></svg>
+        <h3>Замороженный экран</h3>
+        <p>Снимается момент нажатия. Выпадающие меню и подсказки не исчезнут, пока вы выделяете.</p>
+      </div>
+      <div class="fact" data-reveal>
+        <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="6" width="16" height="11" rx="2"/><rect x="13" y="13" width="16" height="11" rx="2"/><path d="M19 28h4"/></svg>
+        <h3>Несколько мониторов</h3>
+        <p>Выделяйте на любом экране, с Retina и без. Редактор откроется там же.</p>
+      </div>
+      <div class="fact" data-reveal>
+        <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="7" width="18" height="18" rx="3"/><path d="M10 3h15a3 3 0 0 1 3 3v15"/></svg>
+        <h3>Снимок за снимком</h3>
+        <p>Нажмите сочетание ещё раз, и начнётся новый снимок, даже если редактор открыт.</p>
+      </div>
+      <div class="fact" data-reveal>
+        <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4v15M10 13l6 6 6-6"/><path d="M5 22v3a3 3 0 0 0 3 3h16a3 3 0 0 0 3-3v-3"/></svg>
+        <h3>Сохранение в файл</h3>
+        <p>⌘S сохраняет в папку скриншотов macOS, ⇧⌘S — куда скажете. В имени файла дата и время.</p>
+      </div>
+      <div class="fact" data-reveal>
+        <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="5" width="26" height="22" rx="3"/><path d="M3 11h26"/><path d="M22 8h3"/></svg>
+        <h3>Живёт в строке меню</h3>
+        <p>Не занимает место в Dock и может запускаться вместе с системой.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band download" id="download">
+  <div class="col">
+    <img src="assets/icon-512.png" alt="Значок Snarro" width="168" height="168" loading="lazy" data-reveal>
+    <h2 data-reveal>Попробуйте Snarro.</h2>
+    <p class="lead" data-reveal>Следующий скриншот займёт пару секунд.</p>
+    <a class="pill big" href="#download" data-reveal><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v9.6l3.3-3.3a1 1 0 1 1 1.4 1.4l-5 5a1 1 0 0 1-1.4 0l-5-5a1 1 0 1 1 1.4-1.4l3.3 3.3V4a1 1 0 0 1 1-1zM5 19h14a1 1 0 1 1 0 2H5a1 1 0 1 1 0-2z"/></svg>Скачать для macOS</a>
+    <p class="req">Нужен Mac с macOS 14 Sonoma или новее. При первом запуске macOS попросит доступ к записи экрана.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wide">
+    <span>© 2026 Snarro</span>
+    <span>Сделано для macOS</span>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Story: the step in the middle of the screen drives the stage.
+  const stage = document.getElementById("stage");
+  const steps = [...document.querySelectorAll(".step")];
+  const setStep = (n) => {
+    if (stage.dataset.step === n) return;
+    stage.dataset.step = n;
+    steps.forEach((s) => s.classList.toggle("on", s.dataset.step === n));
+  };
+  const stepObserver = new IntersectionObserver((entries) => {
+    entries.forEach((e) => { if (e.isIntersecting) setStep(e.target.dataset.step); });
+  }, { rootMargin: "-45% 0px -45% 0px" });
+  steps.forEach((s) => stepObserver.observe(s));
+
+  // Reveal on scroll, only for what starts below the first screen.
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (!e.isIntersecting) return;
+      e.target.classList.remove("pre");
+      revealObserver.unobserve(e.target);
+    });
+  }, { rootMargin: "0px 0px -8% 0px" });
+  if (!reduce) {
+    document.querySelectorAll("[data-reveal]").forEach((el) => {
+      if (el.getBoundingClientRect().top < innerHeight) return;
+      el.classList.add("pre", "reveal");
+      revealObserver.observe(el);
+    });
+  }
+
+  // Hero window grows to full size as the page scrolls.
+  const hero = document.getElementById("heroStage");
+  if (!reduce && hero) {
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      const r = hero.getBoundingClientRect();
+      const t = Math.min(1, Math.max(0, (innerHeight - r.top) / (innerHeight * 0.9)));
+      hero.style.setProperty("--s", (0.94 + 0.06 * t).toFixed(4));
+    };
+    addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+    update();
+  }
+})();
+</script>
+</body>
+</html>

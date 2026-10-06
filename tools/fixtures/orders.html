@@ -1,0 +1,48 @@
+<!doctype html>
+<meta charset="utf-8">
+<!-- Demo screen for the editor screenshots. Rendered at 1040×600 pt, @2x. -->
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body { width: 1040px; height: 600px; overflow: hidden; background: #fff; color: #1d1d1f;
+         font: 15px/1.4 -apple-system, BlinkMacSystemFont, sans-serif; -webkit-font-smoothing: antialiased; }
+  header { height: 64px; display: flex; align-items: center; gap: 36px; padding: 0 32px; border-bottom: 1px solid #ececf0; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 650; font-size: 16px; }
+  .logo { width: 26px; height: 26px; border-radius: 7px; background: linear-gradient(140deg, #2f8f6d, #1c6b51); }
+  nav { display: flex; gap: 22px; color: #6e6e73; }
+  nav b { color: #1d1d1f; font-weight: 600; }
+  .search { margin-left: auto; width: 260px; height: 34px; border: 1px solid #dcdce1; border-radius: 9px; padding: 0 12px; display: flex; align-items: center; color: #9a9aa0; }
+  .avatar { width: 34px; height: 34px; border-radius: 50%; background: #e3efe9; color: #1c6b51; font-weight: 650; font-size: 13px; display: grid; place-items: center; }
+  main { padding: 28px 32px; }
+  h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.01em; }
+  .filters { display: flex; gap: 8px; margin: 18px 0 22px; }
+  .chip { padding: 6px 14px; border-radius: 999px; background: #f2f2f5; color: #3a3a3f; }
+  .chip.on { background: #1d1d1f; color: #fff; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-weight: 600; color: #6e6e73; font-size: 13px; padding: 0 12px 10px; border-bottom: 1px solid #e5e5ea; }
+  td { padding: 13px 12px; border-bottom: 1px solid #f0f0f3; font-variant-numeric: tabular-nums; }
+  td:first-child { color: #6e6e73; }
+  .st { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 13px; font-weight: 600; }
+  .proc { background: #fdf3dc; color: #8a5a00; }
+  .sent { background: #e5efff; color: #1b4fb8; }
+  .done { background: #e1f4e8; color: #1c6b3a; }
+  .cancel { background: #f0f0f3; color: #6e6e73; }
+</style>
+<header>
+  <div class="brand"><div class="logo"></div>Parcel Desk</div>
+  <nav><b>Заказы</b><span>Клиенты</span><span>Отчёты</span></nav>
+  <div class="search">Поиск заказов</div>
+  <div class="avatar">МК</div>
+</header>
+<main>
+  <h1>Заказы</h1>
+  <div class="filters"><span class="chip on">Все</span><span class="chip">В обработке</span><span class="chip">Отправлены</span><span class="chip">Доставлены</span></div>
+  <table>
+    <tr><th>Заказ</th><th>Клиент</th><th>Дата</th><th>Позиций</th><th>Сумма</th><th>Статус</th></tr>
+    <tr><td>#10482</td><td>Мира Коваленко</td><td>2 окт 2026</td><td>3</td><td>84,00 €</td><td><span class="st proc">В обработке</span></td></tr>
+    <tr><td>#10481</td><td>Даниил Орлов</td><td>2 окт 2026</td><td>1</td><td>29,50 €</td><td><span class="st sent">Отправлен</span></td></tr>
+    <tr><td>#10480</td><td>София Линдквист</td><td>1 окт 2026</td><td>2</td><td>112,40 €</td><td><span class="st done">Доставлен</span></td></tr>
+    <tr><td>#10479</td><td>Арджун Мехта</td><td>1 окт 2026</td><td>5</td><td>246,10 €</td><td><span class="st sent">Отправлен</span></td></tr>
+    <tr><td>#10478</td><td>Лея Новак</td><td>30 сен 2026</td><td>1</td><td>18,00 €</td><td><span class="st cancel">Отменён</span></td></tr>
+    <tr><td>#10477</td><td>Томас Берг</td><td>30 сен 2026</td><td>2</td><td>57,80 €</td><td><span class="st done">Доставлен</span></td></tr>
+  </table>
+</main>
